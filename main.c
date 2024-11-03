@@ -46,15 +46,15 @@ int main(int argc, char *argv[]) {
     char current_filename[MAX_FILENAME_LEN];
     snprintf(current_filename, MAX_FILENAME_LEN, "%s.%03d", base_filename, file_index);
     scload(current_filename);
-    int old_esc = 0, old_l = 0, old_r = 0;
-    while(!edge_key(7, 0x04, &old_esc)){ // ESC
-      if (edge_key(8, 0x80, &old_r)) {   // ->
+    int old_esc = 0, old_l = 0, old_r, old_u, old_d = 0;
+    while(!edge_key(7, 0x04, &old_esc)){                                 // ESC
+      if (edge_key(8, 0x80, &old_r) || (edge_key(8, 0x40, &old_r))) {   // right or down
         snprintf(current_filename, MAX_FILENAME_LEN, "%s.%03d", base_filename, file_index + 1);
         if (scload(current_filename) == 0) {
           file_index++;
         }
       }
-      if (edge_key(8, 0x10, &old_l)) {   // <-
+      if (edge_key(8, 0x10, &old_l) || (edge_key(8, 0x20, &old_r))) {   // left or up
         if (file_index > 0) {
           snprintf(current_filename, MAX_FILENAME_LEN, "%s.%03d", base_filename, file_index - 1);
           if (scload(current_filename) == 0) {
