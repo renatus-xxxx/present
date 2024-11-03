@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "msxclib.h"
 #include "msxalib.h"
 
-#define BUF_SZ (1024)
+#define BUF_SZ           (1024)
+#define MAX_FILENAME_LEN (16)
 
 int scload(char* fn) {
   FILE* fp;
@@ -29,22 +31,36 @@ int edge_key(int line, int bitmask, int* old) {
   return r;
 }
 
-int main( int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
   if (argc < 2) {
     printf("Usage: present <filename>\n");
     exit(0);
   } else {
     ginit();
     screen(8);
-    color(255,0,0);
-    int ret = scload(argv[1]);
+    color(255, 0, 0);
+    char base_filename[MAX_FILENAME_LEN];
+    memset(base_filename, 0, MAX_FILENAME_LEN);
+    strncpy(base_filename, argv[1], MAX_FILENAME_LEN); // Copy the base filename
+    int file_index = 0;
+    char current_filename[MAX_FILENAME_LEN];
+    snprintf(current_filename, MAX_FILENAME_LEN, "%s.%03d", base_filename, file_index);
+    scload(current_filename);
     int old_esc = 0, old_l = 0, old_r = 0;
     while(!edge_key(7, 0x04, &old_esc)){ // ESC
-      if (edge_key(8, 0x80, &old_r)) {   //  ->
-        scload("present.001");
+      if (edge_key(8, 0x80, &old_r)) {   // ->
+        snprintf(current_filename, MAX_FILENAME_LEN, "%s.%03d", base_filename, file_index + 1);
+        if (scload(current_filename) == 0) {
+          file_index++;
+        }
       }
       if (edge_key(8, 0x10, &old_l)) {   // <-
-        scload("present.000");
+        if (file_index > 0) {
+          snprintf(current_filename, MAX_FILENAME_LEN, "%s.%03d", base_filename, file_index - 1);
+          if (scload(current_filename) == 0) {
+            file_index--;
+          }
+        }
       }
     }
     screen(0);
